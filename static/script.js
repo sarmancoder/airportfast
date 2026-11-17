@@ -30,12 +30,15 @@ async function questionFormSubmit(e) {
 
     const td = new TextDecoder()
 
+    let valueAcc = ""
+
 
     while (true) {
         const { done, value } = await reader.read('utf-8')
         if (done) break
-        const valueutf = marked.parse(td.decode(value))
-        responseHTMLContainer.innerHTML += DOMPurify.sanitize(valueutf);
+        valueAcc += td.decode(value)
+        const valueutf = marked.parse(valueAcc)
+        responseHTMLContainer.innerHTML = DOMPurify.sanitize(valueutf);
     }
 
     e.target.reset()
