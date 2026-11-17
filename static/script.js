@@ -16,8 +16,17 @@ async function questionFormSubmit(e) {
         throw new Error(`Error HTTP: ${response.status}`);
     }
 
-    const data = await response.json();
-    console.log('data:', data);
+    const reader = await response.body.getReader()
+
+    const td = new TextDecoder()
+
+
+    while (true) {
+        const { done, value } = await reader.read('utf-8')
+        if (done) break
+        const valueutf = td.decode(value)
+        console.log(valueutf)
+    }
 
     e.target.reset()
 }
