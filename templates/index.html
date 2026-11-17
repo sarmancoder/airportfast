@@ -6,10 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Airport OpenAI</title>
     <link rel="stylesheet" href="/static/styles.css" />
+    <script src="/static/marked.js"></script>
+    <script src="/static/purify.min.js"></script>
     <script src="/static/script.js"></script>
 </head>
 
 <body>
+    <div id="response"></div>
     <footer>
         <form id="question-form" onsubmit="questionFormSubmit(event)">
             <input name="question" placeholder="Escribe tu pregunta" />

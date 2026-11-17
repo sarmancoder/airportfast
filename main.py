@@ -19,9 +19,9 @@ async def root(request: Request):
     )
 
 async def makeReseponse(question: str):
-    yield "la pregunta que hicistes fue"
+    yield "# Pregunta hecha"
     await sleep(3)
-    yield question
+    yield " * " + question
 
 @app.post("/question")
 async def question(body: QuestionBody):
