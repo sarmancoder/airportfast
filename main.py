@@ -1,4 +1,4 @@
-from ai import makeReseponse
+from aigoogle import makeResponseGoogle
 from fastapi import FastAPI, Request
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, StreamingResponse
@@ -23,4 +23,4 @@ async def root(request: Request):
 
 @app.post("/question")
 async def question(body: QuestionBody):
-    return StreamingResponse(makeReseponse(body.question))
+    return StreamingResponse(makeResponseGoogle(body.question))

@@ -1,7 +1,7 @@
 from openai import AsyncOpenAI
 from os import environ
-from dotenv import load_dotenv
 import logging
+from dotenv import load_dotenv
 
 load_dotenv()
 
