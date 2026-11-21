@@ -1,8 +1,9 @@
+from httpx2 import query
 from langchain_google_genai import ChatGoogleGenerativeAI
 from os import environ
 from dotenv import load_dotenv
-import logging
-
+from db import cnx
+from db_queries import query_flights
 load_dotenv()
 
 gemini_client = ChatGoogleGenerativeAI(
@@ -25,6 +26,15 @@ def _extract_text(content: str | list) -> str:
     return str(content)
 
 async def makeResponseGoogle(question: str):
+    cur = cnx.cursor()
+
+    cur.execute(query_flights)
+
+    rows = cur.fetchall()
+    print(rows[0])
+
+    cur.close()
+
     async for res in gemini_client.astream(question):
         text = _extract_text(res.content)
         yield text
