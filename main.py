@@ -1,10 +1,14 @@
+import logging
+
+from dotenv import load_dotenv
+load_dotenv()
+
 from aigoogle import makeResponseGoogle
 from fastapi import FastAPI, Request
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-import logging
 
 logging.basicConfig(level=logging.INFO)
 

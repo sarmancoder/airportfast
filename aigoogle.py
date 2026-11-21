@@ -1,10 +1,8 @@
 from httpx2 import query
 from langchain_google_genai import ChatGoogleGenerativeAI
 from os import environ
-from dotenv import load_dotenv
 from db import cnx
 from db_queries import query_flights
-load_dotenv()
 
 gemini_client = ChatGoogleGenerativeAI(
     model="gemini-3.5-flash-lite",

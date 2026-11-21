@@ -1,8 +1,5 @@
 import mysql.connector
 from os import environ
-from dotenv import load_dotenv
-
-load_dotenv()
 
 # Connect to server
 cnx = mysql.connector.connect(
