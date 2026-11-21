@@ -26,10 +26,11 @@ def _extract_text(content: str | list) -> str:
 async def makeResponseGoogle(question: str):
     cur = cnx.cursor()
 
-    cur.execute(query_flights)
+    cur.execute(query_flights(10), ("UNITED STATES",))
 
     rows = cur.fetchall()
     print(rows[0])
+    print(len(rows))
 
     cur.close()
 

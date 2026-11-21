@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 authors = [
-    { name = "sarmancoder", email = "85787170+sarmancoder@users.noreply.github.com" }
+    { name = "sarmancoder", email = "85787170+sarmancoder@users.noreply.github.com" },
 ]
 requires-python = ">=3.14"
 dependencies = [
@@ -14,7 +14,6 @@ dependencies = [
     "langchain-google-genai>=4.5.1",
     "mysql-connector-python>=26.10.0",
     "openai>=3.52.0",
-    "pymysql>=1.2.4",
 ]
 
 [project.scripts]
