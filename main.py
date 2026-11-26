@@ -18,6 +18,7 @@ templates = Jinja2Templates(directory="templates")
 
 class QuestionBody(BaseModel):
     question: str
+    id: str
 
 @app.get("/", response_class=HTMLResponse)
 async def root(request: Request):
@@ -27,4 +28,4 @@ async def root(request: Request):
 
 @app.post("/question")
 async def question(body: QuestionBody):
-    return StreamingResponse(makeResponseGoogle(body.question))
+    return StreamingResponse(makeResponseGoogle(body.question, body.id))
