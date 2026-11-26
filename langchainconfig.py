@@ -3,6 +3,7 @@ from db_queries import query_flights
 from langchain.tools import tool # Esta librería es clave
 from langchain.agents import create_agent
 from langchain_core.runnables import RunnableConfig
+import uuid
 
 SYSTEM_INSTRUCTIONS = """
 Si es que el pais que te ha pedido no lo encuentras, entonces entragale una lista completa de paises al usuario
@@ -31,7 +32,11 @@ def retrieve_countries():
 
 tools = [retrieve_queries, retrieve_countries]
 
-def prompt(question, llm, thread_id):
+def prompt(question, llm, id):
+    thread_id = id if id else str(uuid.uuid4())
+
+    yield 'id: ' + thread_id
+
     agent = create_agent(
         tools=tools,
         model=llm
@@ -43,7 +48,7 @@ def prompt(question, llm, thread_id):
         {"messages": [{"role": "user", "content": question}]},
         config=config,
     )
-    return _extract_text(res["messages"][-1].content)
+    yield _extract_text(res["messages"][-1].content)
 
 
 def _extract_text(content: str | list) -> str:
