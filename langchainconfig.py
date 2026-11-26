@@ -44,11 +44,20 @@ def prompt(question, llm, id):
 
     config: RunnableConfig = {"configurable": {"thread_id": thread_id}}
 
-    res = agent.invoke(
+    for token, metadata in agent.stream(
         {"messages": [{"role": "user", "content": question}]},
         config=config,
-    )
-    yield _extract_text(res["messages"][-1].content)
+        stream_mode="messages",
+    ):
+        # Ignora las salidas de herramientas (ToolMessage)
+        msg_type = getattr(token, "type", None)
+        is_tool_node = isinstance(metadata, dict) and metadata.get("langgraph_node") == "tools"
+        if msg_type == "tool" or is_tool_node:
+            continue
+
+        text = _extract_text(getattr(token, "content", token))
+        if text:
+            yield text
 
 
 def _extract_text(content: str | list) -> str:
