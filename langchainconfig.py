@@ -1,15 +1,14 @@
 from db import cnx
-from db_queries import query_flights
+from db_queries import query_flights, query_flights_minutes
 from langchain.tools import tool # Esta librería es clave
 from langchain.agents import create_agent
 from langchain_core.runnables import RunnableConfig
 import uuid
+from langgraph.checkpoint.memory import InMemorySaver
 
 SYSTEM_INSTRUCTIONS = """
-Si es que el pais que te ha pedido no lo encuentras, entonces entragale una lista completa de paises al usuario
-Si simplemente te llega el nombre de un pais, entonces quiero que respondas con los vuelos desde ese pais
 Debes indicarle al usuario la duracion del vuelo en horas y minutos, aunque en la base de datos te lo muestras en minutos nada mas...
-Los vuelos quiero que los devuelvas enumerados
+Si el usuario no especifica pais, entonces preguntale el pais
 """
 
 @tool
@@ -24,22 +23,38 @@ def retrieve_queries(country: str, rows: int):
     return rows_query
 
 @tool
+def retrieve_queries_minutes(country: str, rows: int, minutes: int):
+    "Retrieve determined number of flights of a departure country filtered by time in minutes"
+    print("Ejecutando retreive queries by minutes: " + str(minutes))
+    cur = cnx.cursor()
+    
+    cur.execute(query_flights_minutes(rows), (country, minutes))
+
+    rows_query = cur.fetchall()
+    return rows_query
+
+@tool
 def retrieve_countries():
     "Retrieve countries from the databases"
     cur = cnx.cursor()
     cur.execute("select distinct country from airport_geo")
     return cur.fetchall()
 
-tools = [retrieve_queries, retrieve_countries]
+tools = [retrieve_queries, retrieve_countries, retrieve_queries_minutes]
+
+checkpinter = InMemorySaver()
 
 def prompt(question, llm, id):
     thread_id = id if id else str(uuid.uuid4())
+
+    print('id conversacion ' + thread_id)
 
     yield 'id: ' + thread_id
 
     agent = create_agent(
         tools=tools,
-        model=llm
+        model=llm,
+        checkpointer=checkpinter
     )
 
     config: RunnableConfig = {"configurable": {"thread_id": thread_id}}
