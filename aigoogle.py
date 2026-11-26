@@ -1,11 +1,16 @@
 from langchain_google_genai import ChatGoogleGenerativeAI
 from os import environ
-from langchainconfig import prompt
+from langchainconfig import SYSTEM_INSTRUCTIONS, prompt
+from langchain_core.messages import HumanMessage, SystemMessage
 
 gemini_client = ChatGoogleGenerativeAI(
     model="gemini-3.5-flash-lite",
-    google_api_key=environ.get("GOOGLE_API_KEY")
+    google_api_key=environ.get("GOOGLE_API_KEY"),
 )
 
 async def makeResponseGoogle(question: str):
-    yield prompt(question=question, llm=gemini_client)
+    full_prompt = f"{SYSTEM_INSTRUCTIONS}\n\nPregunta: {question}"
+    yield prompt(
+        question=full_prompt,
+        llm=gemini_client,
+    )

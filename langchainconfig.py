@@ -3,6 +3,12 @@ from db_queries import query_flights
 from langchain.tools import tool # Esta librería es clave
 from langchain.agents import create_agent
 
+SYSTEM_INSTRUCTIONS = """
+Si es que el pais que te ha pedido no lo encuentras, entonces entragale una lista completa de paises al usuario
+Si simplemente te llega el nombre de un pais, entonces quiero que respondas con los vuelos desde ese pais
+Debes indicarle al usuario la duracion del vuelo en horas y minutos, aunque en la base de datos te lo muestras en minutos nada mas...
+"""
+
 @tool
 def retrieve_queries(country: str, rows: int):
     "Retrieve determined number of flights of a departure country"
@@ -14,7 +20,14 @@ def retrieve_queries(country: str, rows: int):
     rows_query = cur.fetchall()
     return rows_query
 
-tools = [retrieve_queries]
+@tool
+def retrieve_countries():
+    "Retrieve countries from the databases"
+    cur = cnx.cursor()
+    cur.execute("select distinct country from airport_geo")
+    return cur.fetchall()
+
+tools = [retrieve_queries, retrieve_countries]
 
 def prompt(question, llm):
     agent = create_agent(
