@@ -4,63 +4,73 @@ document.addEventListener('alpine:init', () => {
         idThread: '',
         questionToSend: '',
         lines: [],
+        isLoading: false,
         async sendQuestion() {
+            const question = this.questionToSend.trim()
+            if (this.isLoading || !question) {
+                return
+            }
+
+            this.isLoading = true
+
             if (this.idThread.length > 0) {
                 this.lines.push({ type: 'separator' })
             }
 
             this.lines.push({
                 type: 'question',
-                text: this.questionToSend
+                text: question
             })
 
-            const response = await fetch('/question', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    // 'Authorization': 'Bearer token'
-                },
-                body: JSON.stringify({
-                    question: this.questionToSend,
-                    id: this.idThread
+            try {
+                const response = await fetch('/question', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        question,
+                        id: this.idThread
+                    })
                 })
-            });
 
-            if (!response.ok) {
-                /*responseHTMLContainer.innerHTML = `# Hubo un error
-> Revise la consola y contacte al administrador`*/
-                throw new Error(`Error HTTP: ${response.status}`);
-            }
-
-            const reader = await response.body.getReader()
-
-            const td = new TextDecoder()
-
-            let valueAcc = ""
-
-            const res = {
-                type: 'response',
-                text: 'Cargando...'
-            }
-
-            this.lines.push(res)
-            const indres = this.lines.indexOf(res)
-
-            while (true) {
-                const { done, value } = await reader.read('utf-8')
-                if (done) break
-                const decoded = td.decode(value)
-                if (decoded.startsWith(idPrefix)) {
-                    this.idThread = decoded.replace(idPrefix, '')
-                    continue
+                if (!response.ok) {
+                    throw new Error(`Error HTTP: ${response.status}`)
                 }
-                valueAcc += decoded
-                this.lines[indres].text = marked.parse(valueAcc)
+
+                const reader = response.body.getReader()
+                const td = new TextDecoder()
+                let valueAcc = ""
+
+                const res = {
+                    type: 'response',
+                    text: '<p>Preparando tu respuesta…</p>'
+                }
+                this.lines.push(res)
+                const indres = this.lines.indexOf(res)
+
+                while (true) {
+                    const { done, value } = await reader.read()
+                    if (done) break
+                    const decoded = td.decode(value)
+                    if (decoded.startsWith(idPrefix)) {
+                        this.idThread = decoded.replace(idPrefix, '')
+                        continue
+                    }
+                    valueAcc += decoded
+                    this.lines[indres].text = DOMPurify.sanitize(marked.parse(valueAcc))
+                }
+
+                this.questionToSend = ''
+            } catch (error) {
+                console.error('No se pudo completar la consulta:', error)
+                this.lines.push({
+                    type: 'error',
+                    text: 'Ha ocurrido un problema al consultar. Inténtalo de nuevo.'
+                })
+            } finally {
+                this.isLoading = false
             }
-
-            this.questionToSend = ''
-
-            console.log(this.lines)
         }
     }))
 })

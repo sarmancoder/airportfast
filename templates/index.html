@@ -1,10 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Airport OpenAI</title>
+    <meta name="theme-color" content="#101b2d">
+    <meta name="description" content="Consulta información de vuelos con AirportFast.">
+    <title>AirportFast · Asistente de vuelos</title>
     <link rel="stylesheet" href="/static/styles.css" />
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="/static/marked.js"></script>
@@ -14,30 +16,85 @@
 
 <body x-data="responses">
     <header id="app-header">
-        <p>Id de la conversacion: <strong x-text="idThread"></strong></p>
+        <a class="brand" href="/" aria-label="AirportFast, inicio">
+            <span class="brand-mark" aria-hidden="true">A</span>
+            <span>airport<span class="brand-accent">fast</span></span>
+        </a>
+        <div class="connection-status">
+            <span class="status-dot" :class="{ 'status-dot-loading': isLoading }" aria-hidden="true"></span>
+            <span x-text="isLoading ? 'Preparando respuesta' : 'Asistente listo'"></span>
+        </div>
     </header>
-    <div id="responses">
-        <template x-for="(item, index) in lines" :key="index">
-            <div>
-                <template x-if="item.type === 'separator'">
-                    <hr />
-                </template>
 
-                <template x-if="item.type !== 'separator'">
-                    <div>
-                        <h2 x-text="item.type"></h2>
-                        <div x-html="item.text"></div>
-                    </div>
-                </template>
+    <main class="page-content">
+        <section class="intro" x-show="lines.length === 0">
+            <span class="eyebrow"><span class="eyebrow-icon" aria-hidden="true">✦</span> TU ASISTENTE DE VIAJES</span>
+            <h1>Tu próxima respuesta<br><span>está en el aire.</span></h1>
+            <p>Pregunta por vuelos, rutas y destinos. Te ayudamos a encontrar la información que buscas.</p>
+            <div class="suggestions" aria-label="Ejemplos de preguntas">
+                <span>Prueba con</span>
+                <button class="suggestion-chip" type="button" @click="questionToSend = 'Vuelos desde España'">Vuelos desde España</button>
+                <button class="suggestion-chip" type="button" @click="questionToSend = 'Destinos más populares'">Destinos más populares</button>
             </div>
-        </template>
-    </div>
-    <footer>
-        <form id="question-form" @submit.prevent="sendQuestion">
-            <input name="question" x-model="questionToSend" placeholder="Escribe tu pregunta" />
-            <button>
-                Preguntar
-            </button>
+        </section>
+
+        <section id="responses" aria-label="Conversación" aria-live="polite">
+            <template x-for="(item, index) in lines" :key="index">
+                <article class="message" :class="`message-${item.type}`">
+                    <template x-if="item.type === 'separator'">
+                        <div class="conversation-divider"><span>Nueva consulta</span></div>
+                    </template>
+                    <template x-if="item.type === 'question'">
+                        <div class="message-row question-row">
+                            <span class="message-avatar user-avatar" aria-hidden="true">T</span>
+                            <div class="message-content">
+                                <span class="message-label">Tú</span>
+                                <div class="message-bubble" x-text="item.text"></div>
+                            </div>
+                        </div>
+                    </template>
+                    <template x-if="item.type === 'response'">
+                        <div class="message-row">
+                            <span class="message-avatar assistant-avatar" aria-hidden="true">A</span>
+                            <div class="message-content">
+                                <span class="message-label">AirportFast</span>
+                                <div class="message-bubble assistant-bubble" x-html="item.text"></div>
+                            </div>
+                        </div>
+                    </template>
+                    <template x-if="item.type === 'error'">
+                        <div class="message-row">
+                            <span class="message-avatar error-avatar" aria-hidden="true">!</span>
+                            <div class="message-content">
+                                <span class="message-label">No se pudo completar</span>
+                                <div class="message-bubble error-bubble" x-text="item.text"></div>
+                            </div>
+                        </div>
+                    </template>
+                </article>
+            </template>
+        </section>
+    </main>
+
+    <footer class="composer-area">
+        <form id="question-form" @submit.prevent="sendQuestion" :aria-busy="isLoading">
+            <div class="input-shell" :class="{ 'is-loading': isLoading }">
+                <span class="input-sparkle" aria-hidden="true">✦</span>
+                <input
+                    name="question"
+                    x-model="questionToSend"
+                    :disabled="isLoading"
+                    placeholder="Pregunta sobre vuelos, rutas o destinos..."
+                    aria-label="Escribe tu pregunta"
+                    autocomplete="off"
+                />
+                <button type="submit" :disabled="isLoading || !questionToSend.trim()">
+                    <span class="button-spinner" x-show="isLoading" aria-hidden="true"></span>
+                    <span x-text="isLoading ? 'Consultando' : 'Preguntar'"></span>
+                    <span class="button-arrow" x-show="!isLoading" aria-hidden="true">↑</span>
+                </button>
+            </div>
+            <p class="composer-hint" x-text="isLoading ? 'Preparando tu respuesta…' : 'AirportFast puede cometer errores. Comprueba los datos importantes.'"></p>
         </form>
     </footer>
 </body>
