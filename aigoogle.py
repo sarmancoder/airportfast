@@ -12,7 +12,7 @@ async def makeResponseGoogle(question: str, id: str | None = None):
     full_prompt = f"{SYSTEM_INSTRUCTIONS}\n\nPregunta: {question}"
     thread_id = id if id else str(uuid.uuid4())
     print("id generado " + thread_id)
-    yield f"id: {thread_id}\n\n"
+    yield f"id: {thread_id}"
     res = prompt(
         question=full_prompt,
         llm=gemini_client,

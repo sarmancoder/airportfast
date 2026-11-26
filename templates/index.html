@@ -6,19 +6,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Airport OpenAI</title>
     <link rel="stylesheet" href="/static/styles.css" />
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="/static/marked.js"></script>
     <script src="/static/purify.min.js"></script>
     <script src="/static/script.js"></script>
 </head>
 
-<body>
+<body x-data="responses">
     <header id="app-header">
-        <p>Id de la conversacion: <strong id="thread_id"></strong></p>
+        <p>Id de la conversacion: <strong x-text="idThread"></strong></p>
     </header>
-    <div id="response"></div>
+    <div id="responses">
+        <template x-for="(item, index) in lines" :key="index">
+            <div>
+                <template x-if="item.type === 'separator'">
+                    <hr />
+                </template>
+
+                <template x-if="item.type !== 'separator'">
+                    <div>
+                        <h2 x-text="item.type"></h2>
+                        <div x-html="item.text"></div>
+                    </div>
+                </template>
+            </div>
+        </template>
+    </div>
     <footer>
-        <form id="question-form" onsubmit="questionFormSubmit(event)">
-            <input name="question" placeholder="Escribe tu pregunta" />
+        <form id="question-form" @submit.prevent="sendQuestion">
+            <input name="question" x-model="questionToSend" placeholder="Escribe tu pregunta" />
             <button>
                 Preguntar
             </button>

@@ -43,7 +43,6 @@ def prompt(question, llm, thread_id):
         {"messages": [{"role": "user", "content": question}]},
         config=config,
     )
-    print(res)
     return _extract_text(res["messages"][-1].content)
 
 

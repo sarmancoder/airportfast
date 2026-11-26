@@ -1,58 +1,66 @@
-async function questionFormSubmit(e) {
-    e.preventDefault()
-    const responseHTMLContainer = document.getElementById('response')
-    const threadStrong = document.getElementById('thread_id')
-    responseHTMLContainer.insertAdjacentHTML('beforeend', '<p>Cargando</p>')
-
-    await new Promise((r) => setTimeout(r, 500))
-
-    const question = e.target['question'].value
-    console.log(`Pregunta a resolver: ${question}`)
-
-    const response = await fetch('/question', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            // 'Authorization': 'Bearer token'
-        },
-        body: JSON.stringify({ question, id: threadStrong.innerText })
-    });
-
-    if (!response.ok) {
-        responseHTMLContainer.innerHTML = `# Hubo un error
-> Revise la consola y contacte al administrador
-`
-        throw new Error(`Error HTTP: ${response.status}`);
-    }
-
-    // responseHTMLContainer.innerHTML = ""
-    if (threadStrong.innerText.length > 0) {
-        responseHTMLContainer.innerHTML += "<hr />"
-    }
-
-    const reader = await response.body.getReader()
-
-    const td = new TextDecoder()
-
-    let valueAcc = ""
-
+document.addEventListener('alpine:init', () => {
     const idPrefix = "id: "
+    Alpine.data('responses', () => ({
+        idThread: '',
+        questionToSend: '',
+        lines: [],
+        async sendQuestion() {
+            if (this.idThread.length > 0) {
+                this.lines.push({ type: 'separator' })
+            }
 
+            this.lines.push({
+                type: 'question',
+                text: this.questionToSend
+            })
 
-    while (true) {
-        const { done, value } = await reader.read('utf-8')
-        if (done) break
-        const decoded = td.decode(value)
-        console.log(decoded)
-        if (decoded.startsWith(idPrefix) && threadStrong.innerText.length === 0) {
-            threadStrong.innerText = decoded.replace(idPrefix, '')
-            continue
+            const response = await fetch('/question', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    // 'Authorization': 'Bearer token'
+                },
+                body: JSON.stringify({
+                    question: this.questionToSend,
+                    id: this.idThread
+                })
+            });
+
+            if (!response.ok) {
+                /*responseHTMLContainer.innerHTML = `# Hubo un error
+> Revise la consola y contacte al administrador`*/
+                throw new Error(`Error HTTP: ${response.status}`);
+            }
+
+            const reader = await response.body.getReader()
+
+            const td = new TextDecoder()
+
+            let valueAcc = ""
+
+            const res = {
+                type: 'response',
+                text: 'Cargando...'
+            }
+
+            this.lines.push(res)
+            const indres = this.lines.indexOf(res)
+
+            while (true) {
+                const { done, value } = await reader.read('utf-8')
+                if (done) break
+                const decoded = td.decode(value)
+                if (decoded.startsWith(idPrefix)) {
+                    this.idThread = decoded.replace(idPrefix, '')
+                    continue
+                }
+                valueAcc += decoded
+                this.lines[indres].text = marked.parse(valueAcc)
+            }
+
+            this.questionToSend = ''
+
+            console.log(this.lines)
         }
-        valueAcc += decoded
-        const valueutf = marked.parse(valueAcc)
-        console.log(valueutf)
-        responseHTMLContainer.innerHTML = DOMPurify.sanitize(valueutf);
-    }
-
-    e.target.reset()
-}
+    }))
+})
